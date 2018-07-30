@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Baking Recipe</string>
+    <string name="error_message">Please check your internet connection. An error has occurred.</string>
+    <string name="serving">"Servings: "</string>
+</resources>
