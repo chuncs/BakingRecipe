@@ -14,8 +14,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <activity android:name=".ui.MainActivity"
+        <activity
+            android:name=".ui.MainActivity"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,15 +23,34 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ui.DetailActivity"
-            android:parentActivityName=".ui.MainActivity"
-            android:launchMode="singleTop" />
-
-        <activity android:name=".ui.StepDetailActivity"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.MainActivity" />
+        <activity
+            android:name=".ui.StepDetailActivity"
             android:parentActivityName=".ui.DetailActivity" />
 
+        <receiver android:name=".widget.IngredientWidget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/ingredient_widget_info" />
+        </receiver>
+
+        <service android:name=".widget.IngredientUpdateService" />
+        <service
+            android:name=".widget.IngredientWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <activity android:name=".widget.IngredientWidgetConfigure">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

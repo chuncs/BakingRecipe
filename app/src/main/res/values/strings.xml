@@ -2,4 +2,6 @@
     <string name="app_name">Baking Recipe</string>
     <string name="error_message">Please check your internet connection. An error has occurred.</string>
     <string name="serving">"Servings: "</string>
+    <string name="configure_title">Choose a recipe</string>
+    <string name="add_widget">Add widget</string>
 </resources>
