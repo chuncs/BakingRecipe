@@ -24,9 +24,9 @@ import java.util.List;
 public class IngredientWidgetConfigure extends AppCompatActivity implements RecipeAdapter.ItemClickListener {
 
     private static final String PREFS_ID
-            = "com.udacity.classroom.bakingrecipe.widget.IngredientWidget.id";
+            = "com.udacity.classroom.bakingrecipe.widget.IngredientWidgetProvider.id";
     private static final String PREFS_NAME
-            = "com.udacity.classroom.bakingrecipe.widget.IngredientWidget.name";
+            = "com.udacity.classroom.bakingrecipe.widget.IngredientWidgetProvider.name";
     private static final String PREF_PREFIX_KEY = "prefix_";
 
     private AppDatabase mDb;
@@ -79,7 +79,7 @@ public class IngredientWidgetConfigure extends AppCompatActivity implements Reci
         saveRecipeIdPref(context, mAppWidgetId, itemId, recipeName);
 
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        IngredientWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId, itemId, recipeName);
+        IngredientWidgetProvider.updateAppWidget(context, appWidgetManager, mAppWidgetId, itemId, recipeName);
 
         Intent intent = new Intent();
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);

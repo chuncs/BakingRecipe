@@ -9,7 +9,7 @@ import android.support.annotation.Nullable;
 
 public class IngredientUpdateService extends IntentService {
 
-    public static final String ACTION_UPDATE_INGREDIENT_WIDGETS = "update_ingredient_widgets";
+    private static final String ACTION_UPDATE_INGREDIENT_WIDGETS = "update_ingredient_widgets";
 
     public IngredientUpdateService() {
         super("IngredientUpdateService");
@@ -33,8 +33,8 @@ public class IngredientUpdateService extends IntentService {
 
     private void handleActionUpdateIngredientWidgets() {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(this, IngredientWidget.class));
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(this, IngredientWidgetProvider.class));
 //        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.linearLayout_ingredient);
-        IngredientWidget.updateIngredientWidgets(this, appWidgetManager, appWidgetIds);
+        IngredientWidgetProvider.updateIngredientWidgets(this, appWidgetManager, appWidgetIds);
     }
 }

@@ -1,6 +1,5 @@
 package com.udacity.classroom.bakingrecipe.widget;
 
-import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.widget.RemoteViews;
@@ -23,8 +22,7 @@ public class ListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFac
 
     public ListRemoteViewsFactory(Context context, Intent intent) {
         mContext = context;
-        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID);
+        mAppWidgetId = Integer.valueOf(intent.getData().getSchemeSpecificPart());
     }
 
     @Override

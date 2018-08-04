@@ -5,13 +5,19 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
+import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.udacity.classroom.bakingrecipe.IdlingResource.RecipeDownloadDelayer;
+import com.udacity.classroom.bakingrecipe.IdlingResource.RecipeIdlingResource;
 import com.udacity.classroom.bakingrecipe.R;
 import com.udacity.classroom.bakingrecipe.adapter.RecipeAdapter;
 import com.udacity.classroom.bakingrecipe.database.AppDatabase;
@@ -30,14 +36,19 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements RecipeAdapter.ItemClickListener {
+public class MainActivity extends AppCompatActivity implements RecipeAdapter.ItemClickListener,
+        RecipeDownloadDelayer.DelayerCallback {
 
     private static final String BASE_URL = "https://d17h27t6h515a5.cloudfront.net/";
+    private static final String IDLING_RESOURCE_TESTING = "idlingResourceTesting";
 
     private AppDatabase mDb;
     private ActivityMainBinding mBinding;
     private RecipeAdapter mRecipeAdapter;
     private List<BakingRecipeEntry> mRecipeEntries;
+
+    @Nullable
+    private RecipeIdlingResource mIdlingResource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Ite
         DividerItemDecoration decoration = new DividerItemDecoration(getApplicationContext(),
                 DividerItemDecoration.VERTICAL);
         mBinding.recyclerViewRecipe.addItemDecoration(decoration);
+
+        getIdlingResource();
     }
 
     private void requestJson() {
@@ -109,9 +122,26 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Ite
 
     @Override
     public void onItemClickListener(int itemId, int position) {
+        RecipeDownloadDelayer.downloadRecipe(mRecipeEntries.get(position).getName(),
+                this, mIdlingResource);
+
         Intent intent = new Intent(this, DetailActivity.class);
         intent.putExtra(DetailActivity.EXTRA_RECIPE_ID, itemId);
         intent.putExtra(DetailActivity.EXTRA_NAME, mRecipeEntries.get(position).getName());
         startActivity(intent);
+    }
+
+    @Override
+    public void onDone(String text) {
+        Log.d(IDLING_RESOURCE_TESTING, "Recipe " + text + " downloaded.");
+    }
+
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getIdlingResource() {
+        if (mIdlingResource == null) {
+            mIdlingResource = new RecipeIdlingResource();
+        }
+        return mIdlingResource;
     }
 }

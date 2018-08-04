@@ -29,7 +29,8 @@
                 app:error="@{@drawable/ic_placeholder}"
                 app:imageUrl="@{recipe.image}"
                 app:placeholder="@{@drawable/ic_bread}"
-                tools:srcCompat="@drawable/ic_bread" />
+                tools:srcCompat="@drawable/ic_bread"
+                tools:ignore="ContentDescription" />
 
             <LinearLayout
                 android:layout_width="match_parent"

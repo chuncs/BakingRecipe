@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.widget.RemoteViews;
 
 import com.udacity.classroom.bakingrecipe.R;
@@ -13,7 +14,7 @@ import com.udacity.classroom.bakingrecipe.ui.DetailActivity;
 /**
  * Implementation of App Widget functionality.
  */
-public class IngredientWidget extends AppWidgetProvider {
+public class IngredientWidgetProvider extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId, int recipeId, String recipeName) {
@@ -24,17 +25,16 @@ public class IngredientWidget extends AppWidgetProvider {
         Intent intent = new Intent(context, DetailActivity.class);
         intent.putExtra(DetailActivity.EXTRA_RECIPE_ID, recipeId);
         intent.putExtra(DetailActivity.EXTRA_NAME, recipeName);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        int uniqueInt = (int) (System.currentTimeMillis() & 0xfffffff);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, uniqueInt, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         views.setOnClickPendingIntent(R.id.linearLayout_ingredient, pendingIntent);
 
         views.setTextViewText(R.id.text_recipe_name, recipeName);
 
         Intent idIntent = new Intent(context, IngredientWidgetService.class);
-        idIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        PendingIntent updatePendingIntent = PendingIntent.getService(context, 0, idIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        idIntent.setData(Uri.fromParts("content", String.valueOf(appWidgetId), null));
         views.setRemoteAdapter(R.id.listView_ingredient, idIntent);
-        views.setPendingIntentTemplate(R.id.listView_ingredient, updatePendingIntent);
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
