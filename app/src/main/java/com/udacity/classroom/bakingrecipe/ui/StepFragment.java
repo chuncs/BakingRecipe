@@ -40,14 +40,17 @@ public class StepFragment extends Fragment implements View.OnClickListener{
     private static final String BUNDLE_RECIPE_ID = "bundleRecipeId";
     private static final String BUNDLE_POSITION = "bundlePosition";
     private static final String BUNDLE_SEEK_POSITION = "bundleSeekPosition";
+    private static final String BUNDLE_PLAY_WHEN_READY = "bundlePlayWhenReady";
 
     private AppDatabase mDb;
     private int mRecipeId;
     private int mPosition;
     private int mStepSize;
-    private long mSeekPosition;
+    private boolean mPlayWhenReady;
     private boolean mTwoPane;
     private boolean mTablet;
+    private long mSeekPosition;
+    private String mVideoUrl;
     private SimpleExoPlayer mExoPlayer;
     private FragmentStepBinding mStepBinding;
     private OnButtonClickListener mCallback;
@@ -71,6 +74,11 @@ public class StepFragment extends Fragment implements View.OnClickListener{
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mTablet = getResources().getBoolean(R.bool.isTablet);
+        mDb = AppDatabase.getInstance(getContext());
+        mVideoUrl = "";
+        mPlayWhenReady = true;
+
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(BUNDLE_RECIPE_ID)) {
                 mRecipeId = savedInstanceState.getInt(BUNDLE_RECIPE_ID);
@@ -83,10 +91,11 @@ public class StepFragment extends Fragment implements View.OnClickListener{
             if (savedInstanceState.containsKey(BUNDLE_SEEK_POSITION)) {
                 mSeekPosition = savedInstanceState.getLong(BUNDLE_SEEK_POSITION);
             }
-        }
 
-        mTablet = getResources().getBoolean(R.bool.isTablet);
-        mDb = AppDatabase.getInstance(getContext());
+            if (savedInstanceState.containsKey(BUNDLE_PLAY_WHEN_READY)) {
+                mPlayWhenReady = savedInstanceState.getBoolean(BUNDLE_PLAY_WHEN_READY);
+            }
+        }
     }
 
     @Override
@@ -109,12 +118,53 @@ public class StepFragment extends Fragment implements View.OnClickListener{
     public void onSaveInstanceState(@NonNull Bundle outState) {
         outState.putInt(BUNDLE_RECIPE_ID, mRecipeId);
         outState.putInt(BUNDLE_POSITION, mPosition);
-        if (mExoPlayer != null) {
-            mSeekPosition = mExoPlayer.getCurrentPosition();
-        }
         outState.putLong(BUNDLE_SEEK_POSITION, mSeekPosition);
+        outState.putBoolean(BUNDLE_PLAY_WHEN_READY, mPlayWhenReady);
 
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (Util.SDK_INT > 23) {
+            if (!mVideoUrl.isEmpty()) {
+                initializePlayer(Uri.parse(mVideoUrl));
+            }
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (Util.SDK_INT <= 23) {
+            if (!mVideoUrl.isEmpty()) {
+                initializePlayer(Uri.parse(mVideoUrl));
+            }
+        }
+
+        if (!mTwoPane && !mTablet) onConfigurationChanged();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mExoPlayer != null) {
+            mSeekPosition = mExoPlayer.getCurrentPosition();
+            mPlayWhenReady = mExoPlayer.getPlayWhenReady();
+        }
+
+        if (Util.SDK_INT <= 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (Util.SDK_INT > 23) {
+            releasePlayer();
+        }
     }
 
     private void setupViewModel() {
@@ -127,9 +177,9 @@ public class StepFragment extends Fragment implements View.OnClickListener{
                 mStepSize = steps.size();
                 mStepBinding.textDescription.setText(steps.get(mPosition).getDescription());
 
-                String videoUrl = steps.get(mPosition).getVideoURL();
-                if (!videoUrl.isEmpty()) {
-                    initializePlayer(Uri.parse(videoUrl));
+                mVideoUrl = steps.get(mPosition).getVideoURL();
+                if (!mVideoUrl.isEmpty()) {
+                    initializePlayer(Uri.parse(mVideoUrl));
                 }
 
                 String thumbnailUrl = steps.get(mPosition).getThumbnailURL();
@@ -138,8 +188,6 @@ public class StepFragment extends Fragment implements View.OnClickListener{
                     mStepBinding.setVariable(BR.thumbnail, thumbnailUrl);
                     mStepBinding.executePendingBindings();
                 }
-
-                if (!mTwoPane && !mTablet) onConfigurationChanged();
             }
         });
     }
@@ -155,7 +203,7 @@ public class StepFragment extends Fragment implements View.OnClickListener{
             MediaSource mediaSource = new ExtractorMediaSource.Factory(factory).createMediaSource(mediaUri);
             mExoPlayer.prepare(mediaSource);
             if (mSeekPosition != 0) mExoPlayer.seekTo(mSeekPosition);
-            mExoPlayer.setPlayWhenReady(true);
+            mExoPlayer.setPlayWhenReady(mPlayWhenReady);
             mStepBinding.playerView.setVisibility(View.VISIBLE);
         }
     }
@@ -197,12 +245,6 @@ public class StepFragment extends Fragment implements View.OnClickListener{
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
         );
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        releasePlayer();
     }
 
     public void setRecipeId(int recipeId) {
